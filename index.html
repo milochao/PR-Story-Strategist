@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Story Strategist</title>
+  <title>PR Pitch Planner</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,11 +21,6 @@
     .header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 28px; }
     .logo-text { font-size: 11px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; }
     .version { font-size: 10px; color: var(--gray); }
-    .api-bar { background: var(--black); padding: 12px 14px; margin-bottom: 24px; display: flex; gap: 10px; align-items: center; }
-    .api-bar label { font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--cream); opacity: 0.6; white-space: nowrap; }
-    .api-bar input { flex: 1; padding: 8px 10px; font-size: 11px; font-family: monospace; border: none; background: var(--cream); }
-    .api-bar input:focus { outline: none; background: #fff; }
-    .api-bar select { padding: 8px 10px; font-size: 10px; font-family: inherit; border: none; background: var(--cream); cursor: pointer; }
     .nav { display: flex; background: var(--black); padding: 3px; margin-bottom: 24px; }
     .nav-item { flex: 1; background: var(--cream); color: var(--gray); padding: 10px 4px; text-align: center; font-size: 8px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; border-right: 3px solid var(--black); }
     .nav-item:last-child { border-right: none; }
@@ -102,7 +97,7 @@
     /* LANDING */
     .landing { text-align: center; padding: 40px 0 60px; }
     .landing-logo { margin-bottom: 32px; }
-    .landing-logo img { width: 100px; height: auto; }
+    .landing-logo img { width: 140px; height: auto; }
     .landing-title { font-size: 28px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.02em; }
     .landing-sub { font-size: 14px; color: var(--gray); line-height: 1.7; max-width: 380px; margin: 0 auto 32px; }
     .landing-features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; margin-bottom: 40px; }
@@ -209,27 +204,18 @@
     .error { background: var(--cream-dark); border-left: 4px solid var(--red); padding: 16px; margin-bottom: 20px; font-size: 12px; line-height: 1.5; }
     
     /* FOOTER */
-    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.12); display: flex; justify-content: center; align-items: center; gap: 8px; }
-    .footer img { width: 24px; height: auto; opacity: 0.5; }
-    .footer-text { font-size: 9px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray); }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.12); display: flex; justify-content: center; align-items: center; }
+    .footer img { width: 48px; height: auto; opacity: 0.4; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header" id="main-header" style="display:none;">
-      <div class="logo-text">Story Strategist</div>
-      <div class="version">v13</div>
+      <div class="logo-text">PR Pitch Planner</div>
+      <div class="version">v14</div>
     </div>
     
-    <div class="api-bar" id="api-bar" style="display:none;">
-      <select id="api-provider">
-        <option value="anthropic">Claude</option>
-        <option value="openai">GPT-4o</option>
-        <option value="google">Gemini</option>
-      </select>
-      <label>API Key</label>
-      <input type="password" id="api-key" placeholder="sk-..." />
-    </div>
+    <!-- API handled via OpenRouter -->
     
     <div class="nav" id="main-nav" style="display:none;">
       <div class="nav-item active" onclick="goPhase(1)">I. Listen</div>
@@ -243,33 +229,32 @@
     <div class="phase active" id="phase-0">
       <div class="landing">
         <div class="landing-logo">
-          <img id="logo-img" src="" alt="100% Human" />
+          <img id="logo-img" src="" alt="" />
         </div>
-        <div class="landing-title">Story Strategist</div>
-        <div class="landing-sub">Transform your story into a strategic media campaign. Get targeted outlet recommendations, research the landscape, and generate personalized pitches.</div>
+        <div class="landing-title">PR Pitch Planner</div>
+        <div class="landing-sub">Plan and write media pitches for your story. Find the right outlets, research the landscape, and generate personalized emails.</div>
         <div class="landing-features">
           <div class="landing-feature">
-            <div class="landing-feature-title">Find the bigger story</div>
-            <div class="landing-feature-desc">Discover the deeper narrative underneath what you're pitching</div>
+            <div class="landing-feature-title">Find the angle</div>
+            <div class="landing-feature-desc">Discover what makes your story pitch-worthy</div>
           </div>
           <div class="landing-feature">
-            <div class="landing-feature-title">Map the landscape</div>
-            <div class="landing-feature-desc">See which outlets fit your story across tiers and categories</div>
+            <div class="landing-feature-title">Target outlets</div>
+            <div class="landing-feature-desc">See which publications and journalists fit your story</div>
           </div>
           <div class="landing-feature">
-            <div class="landing-feature-title">Automated research</div>
-            <div class="landing-feature-desc">AI searches and analyzes the competitive landscape for you</div>
+            <div class="landing-feature-title">Research coverage</div>
+            <div class="landing-feature-desc">Search recent news to find gaps and angles</div>
           </div>
           <div class="landing-feature">
-            <div class="landing-feature-title">Generate pitches</div>
-            <div class="landing-feature-desc">Get ready-to-send emails informed by research</div>
+            <div class="landing-feature-title">Write pitches</div>
+            <div class="landing-feature-desc">Generate ready-to-send pitch emails</div>
           </div>
         </div>
         <button class="landing-start" onclick="startApp()">Get Started →</button>
       </div>
       <div class="footer">
-        <img id="footer-logo-0" src="" alt="100% Human" />
-        <div class="footer-text">100% Human</div>
+        <img id="footer-logo-0" src="" alt="" />
       </div>
     </div>
     
@@ -277,12 +262,12 @@
     <div class="phase" id="phase-1">
       <div class="prompt">Tell me about this story.</div>
       <div class="sub">What's happening? Who's involved? Include names, dates, credentials, context.</div>
-      <textarea id="story-input" placeholder="Han Binbin, 30, cerebral palsy, will compete in chess using only his thoughts on December 29..."></textarea>
+      <textarea id="story-input" placeholder="A local bakery is launching a program to hire and train refugees, partnering with three resettlement agencies. The owner, Maria Santos, was herself a refugee 20 years ago..."></textarea>
       <div class="btns">
         <div></div>
         <button class="btn btn-next" onclick="goPhase(2)">Continue →</button>
       </div>
-      <div class="footer"><img class="footer-logo" src="" alt="" /><div class="footer-text">100% Human</div></div>
+      <div class="footer"><img class="footer-logo" src="" alt="" /></div>
     </div>
     
     <!-- Phase 2 -->
@@ -323,7 +308,7 @@
         <button class="btn btn-back" onclick="goPhase(1)">← Back</button>
         <button class="btn btn-next" id="generate-btn">Generate Strategy →</button>
       </div>
-      <div class="footer"><img class="footer-logo" src="" alt="" /><div class="footer-text">100% Human</div></div>
+      <div class="footer"><img class="footer-logo" src="" alt="" /></div>
     </div>
     
     <!-- Phase 3 -->
@@ -333,7 +318,7 @@
         <button class="btn btn-back" onclick="goPhase(2)">← Revise</button>
         <button class="btn btn-next" onclick="startResearch()">Research Landscape →</button>
       </div>
-      <div class="footer"><img class="footer-logo" src="" alt="" /><div class="footer-text">100% Human</div></div>
+      <div class="footer"><img class="footer-logo" src="" alt="" /></div>
     </div>
     
     <!-- Phase 4 -->
@@ -343,7 +328,7 @@
         <button class="btn btn-back" onclick="goPhase(3)">← Strategy</button>
         <button class="btn btn-next" id="to-pitches-btn">Generate Pitches →</button>
       </div>
-      <div class="footer"><img class="footer-logo" src="" alt="" /><div class="footer-text">100% Human</div></div>
+      <div class="footer"><img class="footer-logo" src="" alt="" /></div>
     </div>
     
     <!-- Phase 5 -->
@@ -353,7 +338,7 @@
         <button class="btn btn-back" onclick="goPhase(4)">← Research</button>
         <div></div>
       </div>
-      <div class="footer"><img class="footer-logo" src="" alt="" /><div class="footer-text">100% Human</div></div>
+      <div class="footer"><img class="footer-logo" src="" alt="" /></div>
     </div>
     
     <!-- Loading -->
@@ -393,51 +378,36 @@
       document.querySelectorAll('.footer-logo').forEach(function(img) { img.src = LOGO_DATA; });
     });
     
-    function callLLM(prompt, maxTokens, useWebSearch) {
-      var apiKey = document.getElementById('api-key').value.trim();
-      var provider = document.getElementById('api-provider').value;
+    var OPENROUTER_API_KEY = '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';
+    var MODEL_STRATEGY = 'anthropic/claude-sonnet-4';  // Best for structured JSON and creative writing
+    var MODEL_RESEARCH = 'perplexity/sonar-pro';       // Built for web search
+    
+    function callLLM(prompt, maxTokens, useResearchModel) {
+      var model = useResearchModel ? MODEL_RESEARCH : MODEL_STRATEGY;
       
-      if (provider === 'anthropic') {
-        var body = { model: 'claude-sonnet-4-20250514', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] };
-        if (useWebSearch) {
-          body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 10 }];
-        }
-        return fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-          body: JSON.stringify(body)
-        }).then(function(res) { return res.json(); }).then(function(data) {
-          if (data.error) throw new Error(data.error.message);
-          var text = '';
-          data.content.forEach(function(block) { if (block.type === 'text') text += block.text; });
-          return text;
-        });
-      } else if (provider === 'openai') {
-        return fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-          body: JSON.stringify({ model: 'gpt-4o', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] })
-        }).then(function(res) { return res.json(); }).then(function(data) {
-          if (data.error) throw new Error(data.error.message);
-          return data.choices[0].message.content;
-        });
-      } else if (provider === 'google') {
-        return fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: maxTokens } })
-        }).then(function(res) { return res.json(); }).then(function(data) {
-          if (data.error) throw new Error(data.error.message);
-          return data.candidates[0].content.parts[0].text;
-        });
-      }
+      return fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + OPENROUTER_API_KEY,
+          'HTTP-Referer': window.location.href,
+          'X-Title': 'PR Pitch Planner'
+        },
+        body: JSON.stringify({
+          model: model,
+          max_tokens: maxTokens,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      }).then(function(res) { return res.json(); }).then(function(data) {
+        if (data.error) throw new Error(data.error.message || 'API error');
+        return data.choices[0].message.content;
+      });
     }
     
     function startApp() {
       document.getElementById('phase-0').classList.remove('active');
       document.getElementById('phase-1').classList.add('active');
       document.getElementById('main-header').style.display = 'flex';
-      document.getElementById('api-bar').style.display = 'flex';
       document.getElementById('main-nav').style.display = 'flex';
       currentPhase = 1;
     }
@@ -478,9 +448,7 @@
     }
     
     function generate() {
-      var apiKey = document.getElementById('api-key').value.trim();
       config.story = document.getElementById('story-input').value.trim();
-      if (!apiKey) { alert('Enter API key.'); return; }
       if (!config.story) { alert('Enter story.'); return; }
       
       document.querySelectorAll('.phase').forEach(function(p) { p.classList.remove('active'); });
@@ -671,21 +639,17 @@
       document.getElementById('phase-loading').classList.add('active');
       document.getElementById('loading-text').textContent = 'Researching landscape';
       document.getElementById('loading-config').textContent = strategyData.searchTerms.length + ' search terms';
-      document.getElementById('loading-note').textContent = 'Using web search to find relevant coverage...';
+      document.getElementById('loading-note').textContent = 'Searching the web for recent coverage...';
       
-      var provider = document.getElementById('api-provider').value;
-      
-      // For Claude, use web search tool. For others, use a search-aware prompt.
-      var researchPrompt = 'You are a PR research analyst. Search the web for recent news and coverage related to this story and these search terms, then analyze the competitive landscape.\n\n' +
+      // Research prompt - Perplexity will search the web
+      var researchPrompt = 'Search the web for recent news and media coverage related to this story. Find real, current articles and analyze the competitive landscape.\n\n' +
         'STORY: ' + config.story + '\n\n' +
-        'SEARCH TERMS: ' + strategyData.searchTerms.join(', ') + '\n\n' +
-        'Search for each term and find:\n1. Recent news articles (last 3 months)\n2. Competitor coverage\n3. Trending angles\n4. Coverage gaps\n\n' +
-        'After searching, return ONLY this JSON:\n' +
-        '{"searchResults":[{"term":"x","findings":"summary of what you found"}],"analysis":{"themes":[{"name":"x","coverage":"high/medium/low"}],"gaps":[{"title":"x","description":"x"}],"angles":[{"title":"x","description":"x"}],"risks":[{"level":"high/medium/low","title":"x","description":"x"}]}}';
+        'SEARCH THESE TERMS: ' + strategyData.searchTerms.join(', ') + '\n\n' +
+        'Search for each term and find:\n1. Recent news articles (last 3-6 months) - include real headlines and outlets\n2. How competitors or similar stories have been covered\n3. What angles are trending in this space\n4. Gaps in coverage that this story could fill\n\n' +
+        'After searching, return ONLY this JSON format (no other text):\n' +
+        '{"searchResults":[{"term":"search term","findings":"summary of real articles and coverage you found"}],"analysis":{"themes":[{"name":"theme name","coverage":"high/medium/low"}],"gaps":[{"title":"gap title","description":"why this is an opportunity"}],"angles":[{"title":"angle title","description":"how to differentiate"}],"risks":[{"level":"high/medium/low","title":"risk title","description":"what to watch out for"}]}}';
       
-      var useWebSearch = (provider === 'anthropic');
-      
-      callLLM(researchPrompt, 6000, useWebSearch)
+      callLLM(researchPrompt, 6000, true)
       .then(function(text) {
         text = text.trim().replace(/```json\s*/gi, '').replace(/```/g, '').trim();
         // Find JSON in response
