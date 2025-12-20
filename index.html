@@ -360,6 +360,7 @@
     var positionedTargets = [];
     var selectedTargets = [];
     var researchData = null;
+    var targetResearchData = null;
     
     var config = { story: '', mode: 'comprehensive', outcome: 'credibility', timeline: 'this-month', budget: 'zero', spokesperson: 'ready', geography: 'us' };
     var colors = { blue: '#2d4a8c', amber: '#d4a03c', red: '#d64933', gray: '#8a8577' };
@@ -401,6 +402,73 @@
       }).then(function(res) { return res.json(); }).then(function(data) {
         if (data.error) throw new Error(data.error.message || 'API error');
         return data.choices[0].message.content;
+      });
+    }
+    
+    // Helper: Extract topic keywords from story
+    function extractTopicKeywords(story) {
+      var words = story.split(/\s+/).slice(0, 20);
+      var stopWords = ['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought', 'used', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'under', 'again', 'further', 'then', 'once', 'and', 'but', 'or', 'nor', 'so', 'yet', 'both', 'either', 'neither', 'not', 'only', 'own', 'same', 'than', 'too', 'very', 'just', 'also', 'now', 'our', 'we', 'i', 'my', 'your', 'their', 'its', 'this', 'that', 'these', 'those'];
+      var keywords = words.filter(function(w) {
+        return w.length > 3 && stopWords.indexOf(w.toLowerCase()) === -1;
+      });
+      return keywords.slice(0, 5).join(' ');
+    }
+    
+    // Research targets (journalist/outlet specific) - runs via Perplexity
+    function researchTargets() {
+      return new Promise(function(resolve, reject) {
+        if (selectedTargets.length === 0) {
+          resolve({});
+          return;
+        }
+        
+        var targetList = selectedTargets.map(function(idx) {
+          var t = positionedTargets[idx];
+          var journalistName = (t.contact && t.contact.name) ? t.contact.name : null;
+          var searchQuery = '';
+          
+          if (journalistName && journalistName !== 'News Desk' && journalistName !== 'Editorial') {
+            searchQuery = journalistName + ' ' + t.outlet + ' recent articles';
+          } else {
+            searchQuery = t.outlet + ' ' + extractTopicKeywords(config.story) + ' coverage 2024 2025';
+          }
+          
+          return {
+            outlet: t.outlet,
+            journalist: journalistName,
+            category: t.category,
+            angle: t.angle,
+            searchQuery: searchQuery
+          };
+        });
+        
+        var researchPrompt = 'You are a PR research assistant. Search the web for recent coverage from these specific outlets and journalists.\n\n' +
+          'STORY CONTEXT: ' + config.story + '\n\n' +
+          'TARGETS TO RESEARCH:\n' + JSON.stringify(targetList, null, 2) + '\n\n' +
+          'For each target, search using the provided searchQuery and find:\n' +
+          '1. Recent articles by this journalist OR from this outlet (last 6 months)\n' +
+          '2. Their typical angle, tone, and audience\n' +
+          '3. One specific article that relates to this story topic (if available)\n' +
+          '4. What stories they seem to care about\n\n' +
+          'Return ONLY this JSON format:\n' +
+          '{"targetResearch":[{"outlet":"outlet name","journalist":"name or null","recentArticle":{"headline":"actual headline if found","url":"url if available","date":"approximate date"},"beatFocus":"what they typically cover","audienceProfile":"who reads this outlet","toneStyle":"formal/conversational/investigative/etc","relevantAngle":"how this story fits their beat","personalizationHook":"one specific thing to reference in pitch"}]}';
+        
+        callLLM(researchPrompt, 4000, true)
+        .then(function(text) {
+          text = text.trim().replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+          var jsonStart = text.indexOf('{');
+          var jsonEnd = text.lastIndexOf('}');
+          if (jsonStart !== -1 && jsonEnd !== -1) {
+            text = text.substring(jsonStart, jsonEnd + 1);
+          }
+          var data = JSON.parse(text);
+          resolve(data);
+        })
+        .catch(function(err) {
+          console.error('Target research error:', err);
+          resolve({});
+        });
       });
     }
     
@@ -755,45 +823,46 @@
     function generatePitches() {
       document.querySelectorAll('.phase').forEach(function(p) { p.classList.remove('active'); });
       document.getElementById('phase-loading').classList.add('active');
-      document.getElementById('loading-text').textContent = 'Crafting pitches';
-      document.getElementById('loading-config').textContent = selectedTargets.length + ' targets';
-      document.getElementById('loading-note').textContent = 'Incorporating research and headline guidance...';
+      document.getElementById('loading-text').textContent = 'Researching your targets';
+      document.getElementById('loading-config').textContent = selectedTargets.length + ' outlets';
+      document.getElementById('loading-note').textContent = 'Finding recent coverage and journalist context...';
       
-      var targetList = selectedTargets.map(function(idx) {
-        var t = positionedTargets[idx];
-        return { outlet: t.outlet, tier: t.tier, category: t.category, rationale: t.rationale, angle: t.angle, contact: t.contact };
-      });
-      
-      // Build prompt with headlines AND research
-      var prompt = 'Write pitch emails. Return ONLY JSON.\n\nSTORY: ' + config.story + '\n\n' +
-        'BIGGER STORY: ' + (strategyData.reflection ? strategyData.reflection.biggerStory : '') + '\n\n';
-      
-      // Add headlines guidance
-      if (strategyData.headlines) {
-        prompt += 'HEADLINE GUIDANCE:\n';
-        prompt += 'Aim for headlines like: ' + JSON.stringify(strategyData.headlines.best) + '\n';
-        prompt += 'Avoid headlines like: ' + JSON.stringify(strategyData.headlines.worst) + '\n\n';
-      }
-      
-      // Add research
-      if (researchData && researchData.analysis) {
-        prompt += 'LANDSCAPE RESEARCH:\n';
-        prompt += 'Themes already covered: ' + JSON.stringify(researchData.analysis.themes) + '\n';
-        prompt += 'White space gaps to fill: ' + JSON.stringify(researchData.analysis.gaps) + '\n';
-        prompt += 'Differentiating angles to use: ' + JSON.stringify(researchData.analysis.angles) + '\n';
-        prompt += 'Risks to avoid: ' + JSON.stringify(researchData.analysis.risks) + '\n\n';
-        prompt += 'Use this research to make pitches more targeted. Emphasize the gaps. Lead with differentiating angles. Avoid the risks.\n\n';
-      }
-      
-      prompt += 'TARGETS:\n' + JSON.stringify(targetList) + '\n\n' +
-        'For each target, write a personalized pitch that:\n' +
-        '1. Leads with the angle specific to that outlet\n' +
-        '2. Positions for the "aim for" headlines\n' +
-        '3. Avoids framing that leads to "avoid" headlines\n' +
-        '4. Uses insights from research to differentiate\n\n' +
-        'JSON: {"pitches":[{"outlet":"x","tier":1,"subject":"compelling subject line","body":"full pitch email body"}]}';
-      
-      callLLM(prompt, 8000, false)
+      // First: Research targets via Perplexity
+      researchTargets()
+      .then(function(targetResearch) {
+        targetResearchData = targetResearch;
+        
+        // Update loading state
+        document.getElementById('loading-text').textContent = 'Crafting pitches';
+        document.getElementById('loading-note').textContent = 'Applying journalist-first principles...';
+        
+        // Build target list with research
+        var targetList = selectedTargets.map(function(idx) {
+          var t = positionedTargets[idx];
+          var research = null;
+          
+          if (targetResearch && targetResearch.targetResearch) {
+            research = targetResearch.targetResearch.find(function(r) {
+              return r.outlet === t.outlet;
+            });
+          }
+          
+          return {
+            outlet: t.outlet,
+            tier: t.tier,
+            category: t.category,
+            rationale: t.rationale,
+            angle: t.angle,
+            contact: t.contact,
+            research: research || null
+          };
+        });
+        
+        // Build the journalist-first pitch prompt
+        var prompt = buildJournalistFirstPrompt(targetList);
+        
+        return callLLM(prompt, 10000, false);
+      })
       .then(function(text) {
         text = text.trim().replace(/```json\s*/gi, '').replace(/```/g, '').trim();
         var jsonStart = text.indexOf('{');
@@ -804,6 +873,90 @@
         goPhase(5);
       })
       .catch(function(err) { document.getElementById('pitches-content').innerHTML = '<div class="error">' + err.message + '</div>'; goPhase(5); });
+    }
+    
+    // Build journalist-first prompt with master principles baked in
+    function buildJournalistFirstPrompt(targetList) {
+      var bestHeadlines = [];
+      var worstHeadlines = [];
+      if (strategyData.headlines && strategyData.headlines.best) {
+        bestHeadlines = strategyData.headlines.best.map(function(h) { return h.headline; });
+      }
+      if (strategyData.headlines && strategyData.headlines.worst) {
+        worstHeadlines = strategyData.headlines.worst.map(function(h) { return h.headline; });
+      }
+      
+      var prompt = 'You are a PR professional writing pitch emails for working journalists.\n\n' +
+        'CRITICAL MINDSET:\n' +
+        '- The journalist is busy, skeptical, and deletes anything promotional, vague, or irrelevant\n' +
+        '- Your goal is NOT to sell a company—your goal is to make the news value obvious in seconds\n' +
+        '- Write like a tight news brief, not a brochure\n\n' +
+        '=== STORY CONTEXT ===\n' +
+        'STORY: ' + config.story + '\n\n' +
+        'BIGGER STORY: ' + (strategyData.reflection ? strategyData.reflection.biggerStory : 'Not provided') + '\n\n';
+      
+      // Add headlines guidance
+      if (bestHeadlines.length > 0 || worstHeadlines.length > 0) {
+        prompt += 'HEADLINE GUIDANCE:\n';
+        if (bestHeadlines.length > 0) prompt += 'Aim for headlines like: ' + JSON.stringify(bestHeadlines) + '\n';
+        if (worstHeadlines.length > 0) prompt += 'Avoid headlines like: ' + JSON.stringify(worstHeadlines) + '\n\n';
+      }
+      
+      // Add landscape research
+      if (researchData && researchData.analysis) {
+        prompt += 'LANDSCAPE RESEARCH:\n' +
+          '- Themes already covered: ' + JSON.stringify(researchData.analysis.themes) + '\n' +
+          '- White space gaps to fill: ' + JSON.stringify(researchData.analysis.gaps) + '\n' +
+          '- Differentiating angles: ' + JSON.stringify(researchData.analysis.angles) + '\n' +
+          '- Risks to avoid: ' + JSON.stringify(researchData.analysis.risks) + '\n\n';
+      }
+      
+      prompt += '=== TARGETS WITH RESEARCH ===\n' +
+        JSON.stringify(targetList, null, 2) + '\n\n' +
+        '=== PITCH REQUIREMENTS ===\n\n' +
+        'SUBJECT LINE RULES:\n' +
+        '- 6-10 words, under 60 characters\n' +
+        '- State the news value explicitly (new data, launch, trend shift, access)\n' +
+        '- Use concrete keywords the journalist might later search\n' +
+        '- NO taglines, buzzwords, clickbait, or vague curiosity gaps\n' +
+        '- Good example: "New data: 38% drop in EV repair costs (2024)"\n' +
+        '- Bad example: "Reimagining the future of mobility"\n\n' +
+        'EMAIL BODY REQUIREMENTS:\n' +
+        '- Target 100-200 words total (under 100 is fine if hook is strong)\n' +
+        '- Structure:\n' +
+        '  1. One-line hook: Clear statement of the news and why it matters NOW\n' +
+        '  2. 2-3 bullets with key facts (data, conflict, trend, access—NOT adjectives)\n' +
+        '  3. Clear call to action (interview, exclusive, embargoed data, early access)\n\n' +
+        'PERSONALIZATION RULES:\n' +
+        '- If research includes a recent article, reference it in ONE sentence\n' +
+        '- Keep personalization to one sentence maximum\n' +
+        '- Do NOT flatter. Do NOT generalize.\n' +
+        '- If no specific article found, OMIT personalization rather than fake it\n\n' +
+        'TONE:\n' +
+        '- Plain language, no jargon, no hype\n' +
+        '- NO filler ("hope you\'re well," "excited to share," "I wanted to reach out")\n' +
+        '- Neutral, factual, journalist-native\n\n' +
+        'HARD PROHIBITIONS:\n' +
+        '- No marketing copy or brand slogans\n' +
+        '- No long company backstory\n' +
+        '- No attachments mentioned\n' +
+        '- No "checking if you saw this"\n' +
+        '- No teasers or curiosity gaps\n\n' +
+        '=== INTERNAL QUALITY CHECK ===\n' +
+        'Before outputting each pitch, verify:\n' +
+        '1. Subject line states clear news value in under 60 chars?\n' +
+        '2. First sentence answers "why now"?\n' +
+        '3. Total body under 200 words?\n' +
+        '4. No filler phrases?\n' +
+        '5. CTA is specific and low-friction?\n' +
+        '6. Personalization is real or omitted (not faked)?\n\n' +
+        'If any check fails, revise before including.\n\n' +
+        '=== OUTPUT FORMAT ===\n' +
+        'Return ONLY valid JSON:\n' +
+        '{"pitches":[{"outlet":"name","tier":1,"subject":"6-10 word subject line","body":"full pitch email body under 200 words","wordCount":150}]}\n\n' +
+        'Write the pitches now.';
+      
+      return prompt;
     }
     
     function renderPitches(pitches) {
